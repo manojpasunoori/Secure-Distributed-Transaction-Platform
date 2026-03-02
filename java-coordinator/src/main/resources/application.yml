@@ -1,0 +1,34 @@
+server:
+  port: 8443
+  ssl:
+    enabled: ${SERVER_SSL_ENABLED:false}
+    key-store: ${SERVER_SSL_KEY_STORE:}
+    key-store-password: ${SERVER_SSL_KEY_STORE_PASSWORD:}
+    key-store-type: ${SERVER_SSL_KEY_STORE_TYPE:PKCS12}
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/sdtp}
+    username: ${SPRING_DATASOURCE_USERNAME:sdtp}
+    password: ${SPRING_DATASOURCE_PASSWORD:sdtp}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+platform:
+  tls:
+    ca-cert: ${PLATFORM_TLS_CA_CERT:}
+    client-keystore: ${PLATFORM_TLS_CLIENT_KEYSTORE:}
+    client-keystore-password: ${PLATFORM_TLS_CLIENT_KEYSTORE_PASSWORD:}
+    client-keystore-type: ${PLATFORM_TLS_CLIENT_KEYSTORE_TYPE:PKCS12}
+  validators:
+    - id: ${PLATFORM_VALIDATORS_0_ID:validator-1}
+      host: ${PLATFORM_VALIDATORS_0_HOST:localhost}
+      port: ${PLATFORM_VALIDATORS_0_PORT:9443}
+    - id: ${PLATFORM_VALIDATORS_1_ID:validator-2}
+      host: ${PLATFORM_VALIDATORS_1_HOST:localhost}
+      port: ${PLATFORM_VALIDATORS_1_PORT:9444}
