@@ -1,0 +1,70 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: sdtp
+      POSTGRES_USER: sdtp
+      POSTGRES_PASSWORD: sdtp
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/1-schema.sql:ro
+
+  validator1:
+    build:
+      context: ./cpp-validator
+    environment:
+      VALIDATOR_ID: validator-1
+      VALIDATOR_PORT: 9443
+      TLS_CERT: /certs/validator1.pem
+      TLS_KEY: /certs/validator1.key
+      TLS_CA: /certs/ca.pem
+    volumes:
+      - ./certs:/certs:ro
+    ports:
+      - "9443:9443"
+
+  validator2:
+    build:
+      context: ./cpp-validator
+    environment:
+      VALIDATOR_ID: validator-2
+      VALIDATOR_PORT: 9444
+      TLS_CERT: /certs/validator2.pem
+      TLS_KEY: /certs/validator2.key
+      TLS_CA: /certs/ca.pem
+    volumes:
+      - ./certs:/certs:ro
+    ports:
+      - "9444:9444"
+
+  coordinator:
+    build:
+      context: ./java-coordinator
+    depends_on:
+      - postgres
+      - validator1
+      - validator2
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/sdtp
+      SPRING_DATASOURCE_USERNAME: sdtp
+      SPRING_DATASOURCE_PASSWORD: sdtp
+      SERVER_SSL_ENABLED: "true"
+      SERVER_SSL_KEY_STORE: /certs/coordinator-keystore.p12
+      SERVER_SSL_KEY_STORE_PASSWORD: changeit
+      SERVER_SSL_KEY_STORE_TYPE: PKCS12
+      PLATFORM_VALIDATORS_0_ID: validator-1
+      PLATFORM_VALIDATORS_0_HOST: validator1
+      PLATFORM_VALIDATORS_0_PORT: 9443
+      PLATFORM_VALIDATORS_1_ID: validator-2
+      PLATFORM_VALIDATORS_1_HOST: validator2
+      PLATFORM_VALIDATORS_1_PORT: 9444
+      PLATFORM_TLS_CA_CERT: /certs/ca.pem
+      PLATFORM_TLS_CLIENT_KEYSTORE: /certs/coordinator-client-keystore.p12
+      PLATFORM_TLS_CLIENT_KEYSTORE_PASSWORD: changeit
+      PLATFORM_TLS_CLIENT_KEYSTORE_TYPE: PKCS12
+    volumes:
+      - ./certs:/certs:ro
+    ports:
+      - "8443:8443"
